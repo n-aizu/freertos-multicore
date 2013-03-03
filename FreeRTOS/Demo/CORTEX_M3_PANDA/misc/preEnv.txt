@@ -1,0 +1,2 @@
+mmcargs=setenv bootargs console=ttyO2,115200n8 mem=1G noinitrd rootfstype=ext4 root=/dev/mmcblk0p2 rw init=/linuxrc
+bootcmd=fatload mmc 0 0x80000000 uImage; run mmcargs; bootm 0x80000000

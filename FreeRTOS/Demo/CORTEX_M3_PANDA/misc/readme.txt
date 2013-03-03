@@ -3,6 +3,9 @@ Files:
 + mksdcard_panda_linux.sh
  Script to make file system on SD card.
 
++ preEnv.txt
+ U-boot environment variables file.
+
 + buildroot-2012.11.1.config
  Config file for Buildroot 2012.11.1.
 
