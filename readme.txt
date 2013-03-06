@@ -5,6 +5,21 @@ DESCRIPTION
 This software is port of FreeRTOS Multicore for the Cortex-M3 processors on the Pandaboard ES.
 (Maybe run on OMAP4430 Pandaboard, but tested only on OMAP4460 Pandaboard ES)
 
+The main characteristics of this software specification are:
+
++ Bound multiprocessing (BMP) kernel.
+ - A single instantiation of an OS manages all cpu cores simultaneously.
+ - Tasks are locked to a specific cpu core.
+ - Tasks can communicate transparently with other task on same cpu core and on other cpu core.
+
++ Symmetric multiprocessing (SMP) is also supported. (optional)
+ - Supported to use both SMP and BMP on the same system.
+
++ This software is run on Linux remoteproc framework only.
+
++ Remote Processor Messaging (rpmsg) Framework is supported.
+
+
 This software is based on:
 
 + FreeRTOS V7.2.0
@@ -20,8 +35,6 @@ This software is based on:
 + sysbios-rpmsg
  - http://git.omapzoom.org/?p=repo/sysbios-rpmsg.git;a=summary
 
-
-This software is run on Linux remoteproc framework only.
 
 This software is tested with:
 + Linux kernel
