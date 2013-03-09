@@ -687,8 +687,7 @@ tskTCB * pxNewTCB;
 
 	taskENTER_CRITICAL( &xTaskCreateLock );
 	{
-		/* configMAX_TASK_NUM + Idle task num */
-		if( uxCurrentNumberOfTasks >= (configMAX_TASK_NUM + portNUM_PROCESSORS) )
+		if( pxTaskCode != prvIdleTask && uxCurrentNumberOfTasks >= configMAX_TASK_NUM )
 		{
 			traceTASK_CREATE_FAILED();
 			xReturn = errLIMIT_OVER;
