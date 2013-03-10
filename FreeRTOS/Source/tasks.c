@@ -176,6 +176,7 @@ PRIVILEGED_DATA static volatile signed portBASE_TYPE xSchedulerRunning 			= pdFA
 PRIVILEGED_DATA static volatile portBASE_TYPE xNumOfOverflows 					= ( portBASE_TYPE ) 0;
 PRIVILEGED_DATA static unsigned portBASE_TYPE uxTaskNumber 						= ( unsigned portBASE_TYPE ) 0U;
 PRIVILEGED_DATA static portTickType xNextTaskUnblockTime						= ( portTickType ) portMAX_DELAY;
+PRIVILEGED_DATA static volatile signed portBASE_TYPE xTaskInitialised 			= pdFALSE;
 
 #if ( configGENERATE_RUN_TIME_STATS == 1 )
 
@@ -687,8 +688,7 @@ tskTCB * pxNewTCB;
 
 	taskENTER_CRITICAL( &xTaskCreateLock );
 	{
-		/* configMAX_TASK_NUM + Idle task num */
-		if( uxCurrentNumberOfTasks >= (configMAX_TASK_NUM + portNUM_PROCESSORS) )
+		if( pxTaskCode != prvIdleTask && uxCurrentNumberOfTasks >= configMAX_TASK_NUM )
 		{
 			traceTASK_CREATE_FAILED();
 			xReturn = errLIMIT_OVER;
@@ -769,13 +769,18 @@ tskTCB * pxNewTCB;
 		
 		/* We are going to manipulate the task queues to add this task to a
 		ready list. */
-		uxCurrentNumberOfTasks++;
-		if( uxCurrentNumberOfTasks == ( unsigned portBASE_TYPE ) 1 )
+		if( pxTaskCode != prvIdleTask )
+		{
+			uxCurrentNumberOfTasks++;
+		}
+
+		if( xTaskInitialised == pdFALSE )
 		{
 			/* This is the first task to be created so do the preliminary
 			initialisation required.  We will not recover if this call
 			fails, but we will report the failure. */
 			prvInitialiseTaskLists();
+			xTaskInitialised = pdTRUE;
 		}
 
 		#if ( configUSE_TRACE_FACILITY == 1 )
