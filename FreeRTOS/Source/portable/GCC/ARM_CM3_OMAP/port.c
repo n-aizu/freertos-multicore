@@ -378,7 +378,7 @@ void vPortSpinLockInit( portSPINLOCK_TYPE *pxLock )
 	unsigned long xStat;
 
 	xStat = portSET_INTERRUPT_MASK_AND_RETURN();
-	vPortSpinLock( uxCurrentCPU, &xLockInitLock );
+	vPortSpinLock2( uxCurrentCPU, &xLockInitLock );
 	{
 		if( xLockIndex < portLOCK_MAX )
 		{
@@ -386,7 +386,7 @@ void vPortSpinLockInit( portSPINLOCK_TYPE *pxLock )
 			xLockIndex++;
 		}
 	}
-	vPortSpinUnLock( uxCurrentCPU, &xLockInitLock );
+	vPortSpinUnLock2( uxCurrentCPU, &xLockInitLock );
 	portCLEAR_INTERRUPT_MASK_AND_SET( xStat );
 }
 
