@@ -1,0 +1,334 @@
+-----------
+DESCRIPTION
+-----------
+
+In this document, feutures peculiar to the FreeRTOS-Multicore is described.
+Feutures that same as original FreeRTOS are omited in this document.
+
+
+-------------
+API REFERENCE
+-------------
+
+[xTaskCreate]
+Description:
+	Create a new task and add it to the list of tasks that are ready to run.
+	The parameter of the cpu core is added in comparison with an original FreeRTOS.
+
+Function prototype:
+	portBASE_TYPE xTaskCreate(
+							portBASE_TYPE xProcessor,													
+							pdTASK_CODE pvTaskCode,
+							const char * const pcName,
+							unsigned short usStackDepth,
+							void *pvParameters,
+  							unsigned portBASE_TYPE uxPriority,
+							xTaskHandle *pvCreatedTask
+						  );
+
+
+Parameters:
+	xProcessor
+		Cpu core on which task runs. Cpu core is indexed from 0.	
+		If portNO_SPECIFIC_PROCESSOR is passed, created task runs on
+		any cpu core. (configUSE_CPU_UNBOUND_TASK must be set to 1)
+
+	other parameters
+		Same as original FreeRTOS.
+
+Returns:
+	Same as original FreeRTOS.
+
+
+[taskENTER_CRITICAL]
+Description:
+	Macro to mark the start of a critical code region.
+	The parameter of the spinlock is added in comparison with an original FreeRTOS.
+
+Function prototype:
+	void taskENTER_CRITICAL( portLOCK_TYPE * pxLock );
+
+Parameters:
+	pxLock
+		Pointer to spinlock object.
+
+
+[taskEXIT_CRITICAL]
+Description:
+	Macro to mark the end of a critical code region.
+	The parameter of the spinlock is added in comparison with an original FreeRTOS.
+
+Function prototype:
+	void taskEXIT_CRITICAL( portLOCK_TYPE * pxLock );
+
+Parameters:
+	pxLock
+		Pointer to spinlock object.
+
+
+[xQueueSendFromISR/xQueueSendToFrontFromISR/xQueueSendToBackFromISR]
+Description:
+	Post an item into the back/front of a queue.
+	It is safe to use this function from within an interrupt service routine.
+
+Function prototype:
+	portBASE_TYPE xQueueSendFromISR(
+									xQueueHandle pxQueue,
+									const void *pvItemToQueue,
+									portBASE_TYPE *pxHigherPriorityTaskWoken
+								);
+
+	(Same as original FreeRTOS)
+
+Parameters:
+	pxHigherPriorityTaskWoken
+		xQueueSendFromISR/xQueueSendToFrontFromISR/xQueueSendToBackFromISR will set
+		pxHigherPriorityTaskWoken to cpu core number that task is bound for if sending
+		to the queue caused a task to unblock, and the unblocked task has a priority
+		higher than currently running task.
+		If xQueueSendFromISR/xQueueSendToFrontFromISR/xQueueSendToBackFromISR sets
+		this value to 0 and over then a context switch should be requested before
+		the interrupt is exited.
+
+		The procedures to raise a context switch are as follows:
+		
+		1. Use portEND_SWITCHING_ISR
+		2. Use vPortYieldFromISR and portINTERRUPT_CORE
+
+		If you call xQueueSendFromISR/xQueueSendToFrontFromISR/xQueueSendToBackFromISR
+		multiple times within an interrupt service routine, you should user vPortYieldFromISR
+		and portINTERRUPT_CORE to raise a context switch.
+		See also callback_ToHost. (FreeRTOS-Plus/BSP/OMAP4_CM3_GCC/middleware/rpmsg/MessageQCopy.c)
+
+	other parameters
+		Same as original FreeRTOS.
+
+Returns:
+	Same as original FreeRTOS.
+
+
+[xQueueReceiveFromISR]
+Description:
+	Receive an item from a queue. It is safe to use this function from within an
+	interrupt service routine.
+
+Function prototype:
+	portBASE_TYPE xQueueReceiveFromISR(
+										 xQueueHandle pxQueue,
+										 void *pvBuffer,
+										 portBASE_TYPE *pxHigherPriorityTaskWoken
+									);
+
+	(Same as original FreeRTOS)
+
+Parameters:
+	See xQueueSendFromISR/xQueueSendToFrontFromISR/xQueueSendToBackFromISR.
+
+Returns:
+	Same as original FreeRTOS.
+
+
+[uxTaskPriorityGetCurrent]
+Description:
+	Obtain the priority of current task.
+
+Function prototype:
+	unsigned portBASE_TYPE uxTaskPriorityGetCurrent( void );
+
+Returns:
+	The priority of current task.
+
+
+[uxTaskPrioritySetCurrent]
+Description:
+	Set the priority of current task.
+	uxTaskPriorityGetCurrent/uxTaskPrioritySetCurrent is designed to implement 
+	priority ceiling mutexes. (with binary semaphore)
+
+Function prototype:
+	unsigned portBASE_TYPE uxTaskPrioritySetCurrent( unsigned portBASE_TYPE uxNewPriority );
+
+Parameters:
+	uxNewPriority
+		The priority to which the task will be set.
+
+Returns:
+	The old priority of current task.
+
+ 
+[taskENTER_CRITICAL_NOT_RECURSIVE_FROM_ISR]
+Description:
+	Macro to mark the start of a critical code region without disabling interrupts.
+	(for optimisation)
+	This macro must be called from an interrupt service routine, and must not be called
+	recursively with same portLOCK_TYPE object.
+
+Function prototype:
+	void taskENTER_CRITICAL_NOT_RECURSIVE_FROM_ISR( portLOCK_TYPE * pxLock );
+
+Parameters:
+	pxLock
+		Pointer to spinlock object.
+
+
+[taskEXIT_CRITICAL_NOT_RECURSIVE_FROM_ISR]
+Description:
+	Macro to mark the end of a critical code region.
+	This macro must be called from an interrupt service routine, and must be called in
+	pairs of taskENTER_CRITICAL_NOT_RECURSIVE_FROM_ISR with sam portLOCK_TYPE object.
+
+Function prototype:
+	void taskEXIT_CRITICAL_NOT_RECURSIVE_FROM_ISR( portLOCK_TYPE * pxLock );
+
+Parameters:
+	pxLock
+		Pointer to spinlock object.
+
+
+[portINTERRUPT_CORE]
+Description:
+	Macro to interrupt other cpu core for forcing a context switch.
+
+Function prototype:
+	void taskEXIT_CRITICAL_NOT_RECURSIVE_FROM_ISR( portLOCK_TYPE * pxLock );
+
+Parameters:
+	pxLock
+		Pointer to spinlock object.
+
+
+[portSET_INTERRUPT_MASK_AND_RETURN]
+Description:
+	Disable interrupts and return previous interrupt state.
+	This macro is same as portSET_INTERRUPT_MASK_FROM_ISR except to allowed to be
+	called from out of an interrupt service routine.
+
+Function prototype:
+	unsigned portBASE_TYPE portSET_INTERRUPT_MASK_AND_RETURN( void );
+
+Returns:
+	Previous interrupt state.
+
+
+[portCLEAR_INTERRUPT_MASK_AND_SET]
+Description:
+	Restore interrupt state.
+	This macro is same as portCLEAR_INTERRUPT_MASK_FROM_ISR except to allowed to be
+	called from out of an interrupt service routine.
+
+Function prototype:
+	void portCLEAR_INTERRUPT_MASK_FROM_ISR( unsigned portBASE_TYPE uxStat );
+
+Parameters:
+	uxStat
+		Previous interrupt state.
+
+
+[portLOCK_INIT]
+Description:
+	Initialize spinlock object for taskENTER_CRITICAL.
+
+Function prototype:
+	void portLOCK_INIT( portLOCK_TYPE *pxLock );
+
+Parameters:
+	pxLock
+		Pointer to spinlock object.
+
+
+[portGetCurrentCPU]
+Descriptiou:
+	Get current cpu core number. Cpu core number starts at 0.
+
+Function prototype:
+	unsigned portBASE_TYPE portGetCurrentCPU( void );
+
+Returns:
+	Current cpu core number.
+
+
+[vPortSetIrqHndl]
+Description:
+	Set an interrupt service routine to the vector table.
+	Vector table is independent every cpu core.
+
+Function prototype:
+	void vPortSetIrqHndl( unsigned int uxIndex, void (*pxHndl)(void), void (**pxOld)(void) );
+
+Parameters:
+	uxIndex
+		Vector table index for interrupt service routine.
+
+	pxHndl
+		Pointer to interrupt service routine.
+
+	pxOld
+		Pointer to previous interrupt service routine.
+		It is optional parameter and can be set to NULL.
+
+
+------
+CONFIG
+------
+
+configMAIN_STACK_SIZE
+	Stack size (bytes) for startup code and for interrupt service routine.
+
+configCORE1_START_IN_FREERTOS
+	Set to 1 to boot cpu core 1 in FreeRTOS kernel code.
+	(Old Linux kernel boot only cpu core 0 of Cortex-M3 of OMAP4)
+
+configUSE_IDLE_SLEEP
+	Set to 1 to force cpu core to sleep when there is no task to dispatch. (except idle task)
+
+configUSE_CPU_UNBOUND_TASK
+	Set to 1 to use portNO_SPECIFIC_PROCESSOR for xTaskCreate.
+
+configMBOX_INTERRUPT_PRIORITY
+	Mailbox user 2 interrupt priority. (used in rpmsg function)
+
+configTEXT_CACHE
+	Set to 1 to enable instruction cache, or 0 to disable instruction cache.
+
+configDATA_CACHE
+	Set to 1 to enable data cache, or 0 to disable data cache.
+
+configTEXT_SIZE
+	Size of text segment. (bytes)
+
+configDATA_SIZE
+	Size of data segment. (bytes)
+
+configSHARED_MEM_SIZE
+	Size of memory segment that is shared with Linux kernel.
+	This memory segment is not chached, and start at IPU_MEM_SHARED_DATA. (0xa1000000)
+
+configRPMSG_FEATURES
+	The virtio device features supported by the firmware. (firmware == FreeRTOS)
+	See also struct fw_rsc_vdev in Linux kernel tree: include/linux/remoteproc.h
+
+
+-----------
+ENTRY POINT
+-----------
+
+Application entry point is main0(). This function is only executed on cpu core 0.
+Cpu core 1 is waiting for vTaskStartScheduler is called.
+When vTaskStartScheduler is called, main1() is called (if main1 is defined) on cpu core 1
+before executing task code.
+Cpu core 0 is waiting for main1() is finished before executing task code.
+
+main1 is designed to set interrupt service routine and NVIC registers for cpu core 1.
+(See also "INTERRUPT")
+
+
+---------
+INTERRUPT
+---------
+
+In FreeRTOS Multicore for OMAP4, interrupt configuration is independent of each cpu cores.
+So it is nessessary to set interrupt service routine and NVIC registers for cpu core 0
+within main0().
+In like manner, it is nessessary to set interrupt service routine and NVIC registers for
+cpu core 1 within main1().
+

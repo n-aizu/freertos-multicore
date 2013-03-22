@@ -116,6 +116,7 @@ Implemented APIs(in comparison with original FreeRTOS V7.2.0):
 + portCLEAR_INTERRUPT_MASK_FROM_ISR
 + pvPortMalloc
 + vPortFree
++ portEND_SWITCHING_ISR
 
 
 Newly implemented APIs(included port APIs):
@@ -129,7 +130,7 @@ Newly implemented APIs(included port APIs):
 [Kernel Control]
 + taskENTER_CRITICAL_NOT_RECURSIVE_FROM_ISR
 + taskEXIT_CRITICAL_NOT_RECURSIVE_FROM_ISR
- - the start of a critical code region without disabling interrupts(for optimisation)
+ - the start/end of a critical code region without disabling interrupts(for optimisation)
  - not allowed to be called recursively
  - allowed to be called within only ISR
 + portINTERRUPT_CORE
@@ -151,7 +152,6 @@ Newly implemented APIs(included port APIs):
 
 Please refer to multicore_features.txt for FreeRTOS Multicore specific features,
 and refer to rpmsg.txt for rpmsg APIs.
-(Sorry, multicore_features.txt and rpmsg.txt are not written yet)
 
 -----------
 DIRECTORIES

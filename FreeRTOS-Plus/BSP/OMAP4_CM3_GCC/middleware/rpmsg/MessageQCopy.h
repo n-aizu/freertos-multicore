@@ -165,8 +165,6 @@ typedef struct MessageQCopy_Object *MessageQCopy_Handle;
 /*!
  *  @brief      Initialize MessageQCopy Module
  *
- *  Note: Multiple clients must serialize calls to this function.
- *
  *  @return     Status of the call.
  *              - #MessageQCopy_S_SUCCESS denotes success.
  *              - #MessageQCopy_E_MEMORY  denotes failure.
@@ -214,7 +212,7 @@ MessageQCopy_Handle MessageQCopy_create(UInt32 reserved, UInt32 * endpoint);
  *              - #MessageQCopy_S_SUCCESS: Message successfully returned
  *              - #MessageQCopy_E_TIMEOUT: MessageQCopy_recv timed out
  *
- *  @sa         MessageQCopy_send MessageQCopy_unblock
+ *  @sa         MessageQCopy_send
  */
 Int MessageQCopy_recv(MessageQCopy_Handle handle, Ptr data, UInt16 *len,
                       UInt32 *rplyEndpt, portTickType timeout);
@@ -226,9 +224,9 @@ Int MessageQCopy_recv(MessageQCopy_Handle handle, Ptr data, UInt16 *len,
  *  @param[in]  dstEndpt    Destination Endpoint.
  *  @param[in]  srcEndpt    Source Endpoint.
  *  @param[in]  data        Data payload to be copied and sent.
- *  @param[in]  len         Amount of data to be copied, including Msg header.
- *  @param[in]  timeout     Maximum duration to wait for a message in
- *                          tick periods.
+ *  @param[in]  len         Amount of data to be copied.
+ *  @param[in]  timeout     Maximum duration to wait for a message sent
+ *                          in tick periods.
  *  @return     Status of the call.
  *              - #MessageQCopy_S_SUCCESS: denotes success.
  *              - #MessageQCopy_E_TIMEOUT: MessageQCopy_send timed out

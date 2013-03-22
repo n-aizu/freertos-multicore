@@ -1,0 +1,134 @@
+-------------
+API REFERENCE
+-------------
+
+[MessageQCopy_init]
+Description:
+	Initialize MessageQCopy Module.
+	This function must be called in main0() or main1(), and must be called only once.
+	FreeRTOS rpmsg implementation support messaging between Cortex-M3 and Cortex-A9
+	only, so argument is "void".
+	(Original sysbios-rpmsg MessageQCopy_init has an argument that indicates id of the peer.)
+
+Function prototype:
+	Int MessageQCopy_init(void);
+
+Returns:
+	Status of the call:
+	 - MessageQCopy_S_SUCCESS: denotes success.
+	 - MessageQCopy_E_MEMORY: denotes failure.
+
+
+[MessageQCopy_create]
+Description:
+	Create a MessageQ instance for receiving.
+	The returned handle is to an object containing a queue for receiving messages
+	from the transport, and a 32 bit endpoint ID unique to this local processor.
+
+Function prototype:
+	MessageQCopy_Handle MessageQCopy_create(UInt32 reserved, UInt32 * endpoint);
+
+Parameters:
+	reserved
+		If value is MessageQCopy_ASSIGN_ANY, then any Endpoint can be assigned.
+		Otherwise, value is a reserved Endpoint ID, which must be less than
+		or equal to MessageQCopy_MAX_RESERVED_ENDPOINT.
+
+	endpoint
+		Endpoint ID for this side of the connection.
+
+Returns:
+	MessageQ Handle, or NULL.
+
+
+[MessageQCopy_recv]
+Description:
+	Receives a message from a message queue.
+	This function returns a status. It also copies data to the client.
+	If no message is available, it blocks on the queue object until the data
+	received or a timeout occurs.
+	If a message is successfully retrieved, the message data is copied into
+	the data pointer, and a MessageQCopy_S_SUCCESS status is returned.
+
+Function prototype:
+	Int MessageQCopy_recv(
+							MessageQCopy_Handle handle,
+							Ptr data,
+							UInt16 *len,
+							UInt32 *rplyEndpt,
+							portTickType timeout
+						);
+
+Parameters:
+	handle
+		MessageQ handle
+
+	data
+		Pointer to the client's data buffer.
+
+	len
+		Data buffer(2nd argument) size.
+		If this function returns MessageQCopy_S_SUCCESS, amount of data received
+		is stored in this argument.
+
+	rplyEndpt
+		Endpoint of source (for replies).
+
+	timeout
+		Maximum duration to wait for a message in tick periods.
+
+Returns:
+	MessageQ status:
+	 - MessageQCopy_S_SUCCESS: Message successfully returned.
+	 - MessageQCopy_E_TIMEOUT: MessageQCopy_recv timed out.
+
+
+[MessageQCopy_send]
+Description:
+	Sends data to a remote processor.
+
+Function prototype:
+	Int MessageQCopy_send(
+							UInt32 dstEndpt,
+							UInt32 srcEndpt,
+							Ptr data,
+							UInt16 len,
+							portTickType timeout
+						);
+
+Parameters:
+	dstEndpt
+		Destination Endpoint.
+
+	srcEndpt
+		Source Endpoint.
+
+	data
+		Data payload to be copied and sent.
+
+	len
+		Amount of data to be copied.
+
+	timeout
+		Maximum duration to wait for a message send in tick periods.
+
+Returns:
+	Status of the call:
+	 - MessageQCopy_S_SUCCESS: denotes success.
+	 - MessageQCopy_E_TIMEOUT: MessageQCopy_send timed out.
+
+
+[NameMap_register]
+Description:
+	Register service to remote processor.
+
+Function prototype:
+	void NameMap_register(Char * name, UInt32 port);
+
+Parameters:
+	name
+		Service name.
+
+	port
+		Source endpoint.
+

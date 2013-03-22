@@ -802,9 +802,9 @@ signed portBASE_TYPE xQueueGenericReceive( xQueueHandle xQueue, void * const pvB
  * into the queue storage area.
  *
  * @param pxHigherPriorityTaskWoken xQueueSendToFrontFromISR() will set
- * *pxHigherPriorityTaskWoken to pdTRUE if sending to the queue caused a task
+ * *pxHigherPriorityTaskWoken to cpu core numbler if sending to the queue caused a task
  * to unblock, and the unblocked task has a priority higher than the currently
- * running task.  If xQueueSendToFromFromISR() sets this value to pdTRUE then
+ * running task.  If xQueueSendToFromFromISR() sets this value to 0 and over then
  * a context switch should be requested before the interrupt is exited.
  *
  * @return pdTRUE if the data was successfully sent to the queue, otherwise
@@ -818,25 +818,14 @@ signed portBASE_TYPE xQueueGenericReceive( xQueueHandle xQueue, void * const pvB
  char cIn;
  portBASE_TYPE xHigherPrioritTaskWoken;
 
-	// We have not woken a task at the start of the ISR.
-	xHigherPriorityTaskWoken = pdFALSE;
+	// Obtain a byte from the buffer.
+	cIn = portINPUT_BYTE( RX_REGISTER_ADDRESS );
 
-	// Loop until the buffer is empty.
-	do
-	{
-		// Obtain a byte from the buffer.
-		cIn = portINPUT_BYTE( RX_REGISTER_ADDRESS );
+	// Post the byte.
+	xQueueSendToFrontFromISR( xRxQueue, &cIn, &xHigherPriorityTaskWoken );
 
-		// Post the byte.
-		xQueueSendToFrontFromISR( xRxQueue, &cIn, &xHigherPriorityTaskWoken );
-
-	} while( portINPUT_BYTE( BUFFER_COUNT ) );
-
-	// Now the buffer is empty we can switch context if necessary.
-	if( xHigherPriorityTaskWoken )
-	{
-		taskYIELD ();
-	}
+	// Switch context if necessary.
+	portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
  }
  </pre>
  *
@@ -873,9 +862,9 @@ signed portBASE_TYPE xQueueGenericReceive( xQueueHandle xQueue, void * const pvB
  * into the queue storage area.
  *
  * @param pxHigherPriorityTaskWoken xQueueSendToBackFromISR() will set
- * *pxHigherPriorityTaskWoken to pdTRUE if sending to the queue caused a task
+ * *pxHigherPriorityTaskWoken to cpu core number if sending to the queue caused a task
  * to unblock, and the unblocked task has a priority higher than the currently
- * running task.  If xQueueSendToBackFromISR() sets this value to pdTRUE then
+ * running task.  If xQueueSendToBackFromISR() sets this value to 0 and over then
  * a context switch should be requested before the interrupt is exited.
  *
  * @return pdTRUE if the data was successfully sent to the queue, otherwise
@@ -889,25 +878,14 @@ signed portBASE_TYPE xQueueGenericReceive( xQueueHandle xQueue, void * const pvB
  char cIn;
  portBASE_TYPE xHigherPriorityTaskWoken;
 
-	// We have not woken a task at the start of the ISR.
-	xHigherPriorityTaskWoken = pdFALSE;
+	// Obtain a byte from the buffer.
+	cIn = portINPUT_BYTE( RX_REGISTER_ADDRESS );
 
-	// Loop until the buffer is empty.
-	do
-	{
-		// Obtain a byte from the buffer.
-		cIn = portINPUT_BYTE( RX_REGISTER_ADDRESS );
+	// Post the byte.
+	xQueueSendToBackFromISR( xRxQueue, &cIn, &xHigherPriorityTaskWoken );
 
-		// Post the byte.
-		xQueueSendToBackFromISR( xRxQueue, &cIn, &xHigherPriorityTaskWoken );
-
-	} while( portINPUT_BYTE( BUFFER_COUNT ) );
-
-	// Now the buffer is empty we can switch context if necessary.
-	if( xHigherPriorityTaskWoken )
-	{
-		taskYIELD ();
-	}
+	// Switch context if necessary.
+	portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
  }
  </pre>
  *
@@ -946,9 +924,9 @@ signed portBASE_TYPE xQueueGenericReceive( xQueueHandle xQueue, void * const pvB
  * into the queue storage area.
  *
  * @param pxHigherPriorityTaskWoken xQueueSendFromISR() will set
- * *pxHigherPriorityTaskWoken to pdTRUE if sending to the queue caused a task
+ * *pxHigherPriorityTaskWoken to cpu core number if sending to the queue caused a task
  * to unblock, and the unblocked task has a priority higher than the currently
- * running task.  If xQueueSendFromISR() sets this value to pdTRUE then
+ * running task.  If xQueueSendFromISR() sets this value to 0 and over then
  * a context switch should be requested before the interrupt is exited.
  *
  * @return pdTRUE if the data was successfully sent to the queue, otherwise
@@ -962,26 +940,16 @@ signed portBASE_TYPE xQueueGenericReceive( xQueueHandle xQueue, void * const pvB
  char cIn;
  portBASE_TYPE xHigherPriorityTaskWoken;
 
-	// We have not woken a task at the start of the ISR.
-	xHigherPriorityTaskWoken = pdFALSE;
+	// Obtain a byte from the buffer.
+	cIn = portINPUT_BYTE( RX_REGISTER_ADDRESS );
 
-	// Loop until the buffer is empty.
-	do
-	{
-		// Obtain a byte from the buffer.
-		cIn = portINPUT_BYTE( RX_REGISTER_ADDRESS );
+	// Post the byte.
+	xQueueSendFromISR( xRxQueue, &cIn, &xHigherPriorityTaskWoken );
 
-		// Post the byte.
-		xQueueSendFromISR( xRxQueue, &cIn, &xHigherPriorityTaskWoken );
+	// Switch context if necessary.
+	portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
 
-	} while( portINPUT_BYTE( BUFFER_COUNT ) );
-
-	// Now the buffer is empty we can switch context if necessary.
-	if( xHigherPriorityTaskWoken )
-	{
-		// Actual macro used here is port specific.
-		taskYIELD_FROM_ISR ();
-	}
+	// See also prvCheckDelayedTasks(in FreeRTOS/Sorce/task.c)
  }
  </pre>
  *
@@ -1020,9 +988,9 @@ signed portBASE_TYPE xQueueGenericReceive( xQueueHandle xQueue, void * const pvB
  * into the queue storage area.
  *
  * @param pxHigherPriorityTaskWoken xQueueGenericSendFromISR() will set
- * *pxHigherPriorityTaskWoken to pdTRUE if sending to the queue caused a task
+ * *pxHigherPriorityTaskWoken to cpu core number if sending to the queue caused a task
  * to unblock, and the unblocked task has a priority higher than the currently
- * running task.  If xQueueGenericSendFromISR() sets this value to pdTRUE then
+ * running task.  If xQueueGenericSendFromISR() sets this value to 0 and over then
  * a context switch should be requested before the interrupt is exited.
  *
  * @param xCopyPosition Can take the value queueSEND_TO_BACK to place the
@@ -1040,26 +1008,14 @@ signed portBASE_TYPE xQueueGenericReceive( xQueueHandle xQueue, void * const pvB
  char cIn;
  portBASE_TYPE xHigherPriorityTaskWokenByPost;
 
-	// We have not woken a task at the start of the ISR.
-	xHigherPriorityTaskWokenByPost = pdFALSE;
+	// Obtain a byte from the buffer.
+	cIn = portINPUT_BYTE( RX_REGISTER_ADDRESS );
 
-	// Loop until the buffer is empty.
-	do
-	{
-		// Obtain a byte from the buffer.
-		cIn = portINPUT_BYTE( RX_REGISTER_ADDRESS );
+	// Post each byte.
+	xQueueGenericSendFromISR( xRxQueue, &cIn, &xHigherPriorityTaskWokenByPost, queueSEND_TO_BACK );
 
-		// Post each byte.
-		xQueueGenericSendFromISR( xRxQueue, &cIn, &xHigherPriorityTaskWokenByPost, queueSEND_TO_BACK );
-
-	} while( portINPUT_BYTE( BUFFER_COUNT ) );
-
-	// Now the buffer is empty we can switch context if necessary.  Note that the
-	// name of the yield function required is port specific.
-	if( xHigherPriorityTaskWokenByPost )
-	{
-		taskYIELD_YIELD_FROM_ISR();
-	}
+	// Switch context if necessary.
+	portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
  }
  </pre>
  *
@@ -1089,8 +1045,8 @@ signed portBASE_TYPE xQueueGenericSendFromISR( xQueueHandle pxQueue, const void 
  *
  * @param pxTaskWoken A task may be blocked waiting for space to become
  * available on the queue.  If xQueueReceiveFromISR causes such a task to
- * unblock *pxTaskWoken will get set to pdTRUE, otherwise *pxTaskWoken will
- * remain unchanged.
+ * unblock *pxTaskWoken will get set to cpu core number, otherwise *pxTaskWoken
+ * set to -1.
  *
  * @return pdTRUE if an item was successfully received from the queue,
  * otherwise pdFALSE.
@@ -1135,20 +1091,13 @@ signed portBASE_TYPE xQueueGenericSendFromISR( xQueueHandle pxQueue, const void 
  portBASE_TYPE xTaskWokenByReceive = pdFALSE;
  char cRxedChar;
 
-	while( xQueueReceiveFromISR( xQueue, ( void * ) &cRxedChar, &xTaskWokenByReceive) )
+	if( xQueueReceiveFromISR( xQueue, ( void * ) &cRxedChar, &xTaskWokenByReceive) )
 	{
 		// A character was received.  Output the character now.
 		vOutputCharacter( cRxedChar );
 
-		// If removing the character from the queue woke the task that was
-		// posting onto the queue cTaskWokenByReceive will have been set to
-		// pdTRUE.  No matter how many times this loop iterates only one
-		// task will be woken.
-	}
-
-	if( cTaskWokenByPost != ( char ) pdFALSE;
-	{
-		taskYIELD ();
+		// Switch context if necessary.
+		portEND_SWITCHING_ISR( xTaskWokenByReceive );
 	}
  }
  </pre>
