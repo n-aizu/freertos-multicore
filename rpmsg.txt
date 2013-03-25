@@ -6,6 +6,9 @@ API REFERENCE
 Description:
 	Initialize MessageQCopy Module.
 	This function must be called in main0() or main1(), and must be called only once.
+	Mailbox user 2 interrupt is enabled in this function. If this function is called in
+	main0() Mailbox user 2 interrupt is handled on cpu core 0, if this function is called
+	in main1() Mailbox user 2 interrupt is handled on cpu core 1.
 	FreeRTOS rpmsg implementation support messaging between Cortex-M3 and Cortex-A9
 	only, so argument is "void".
 	(Original sysbios-rpmsg MessageQCopy_init has an argument that indicates id of the peer.)
